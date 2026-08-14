@@ -67,6 +67,21 @@ button { color: inherit; }
 .hero-search .cursor { width: 6px; height: 28px; background: var(--orange); animation: blink 1.15s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
+.scope-tools { display: flex; align-items: center; gap: 9px; min-height: 38px; margin-top: 12px; }
+.scope-label, .scope-source { color: #aaa79d; font-size: 12px; }
+.scope-chip {
+  min-height: 32px;
+  padding: 5px 12px;
+  border: 1px solid rgba(130, 116, 83, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.58);
+  color: #7f7c72;
+  font-size: 13px;
+  cursor: pointer;
+}
+.scope-chip.active { border-color: var(--orange); background: var(--orange); color: white; }
+.scope-source { margin-left: auto; }
+
 .intro { padding: 26px 8px 20px; color: #b6b7b8; font-size: 15px; line-height: 1.75; }
 .intro p { margin: 0 0 3px; }
 .intro .credit { color: #c6c1b3; }
@@ -228,6 +243,9 @@ body:not(.pool-hidden) .floating-pool { display: none; }
   .hero-search .prompt { font-size: 22px; }
   .hero-search input { font-size: 20px; }
   .hero-search .cursor { width: 5px; height: 24px; }
+  .scope-tools { margin-top: 10px; gap: 7px; }
+  .scope-chip { min-height: 30px; padding: 4px 10px; font-size: 12px; }
+  .scope-source { display: none; }
   .intro { padding: 22px 18px 16px; font-size: 14px; }
   .speed-list { margin: 0 14px; border-radius: 18px; }
   .speed-group { grid-template-columns: 66px minmax(0, 1fr); min-height: 108px; padding: 21px 14px; gap: 8px; }

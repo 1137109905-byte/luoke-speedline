@@ -8,6 +8,8 @@
     { id: "full", individual: 10, nature: "中性", modifier: 1 },
     { id: "zero", individual: 0, nature: "中性", modifier: 1 }
   ];
+  const S3_TOP_120_NAMES = `炮米花|寂灭骨龙|瞌睡王|魔力猫|音速犬|绒光优优|火羽|电球咩咩|泥吼牙|尖嘴狐仙|加油蟹（单只海葵的样子）|水灵|翠顶夫人|恶魔狼|霹雳迪迪|贝古斯|卡瓦重（雪山附近的样子）|烈火守护|雪影娃娃|飞飞钥|火焰猿|海豹船长|古卷执政官|彩蝶鲨|化蝶（平常的样子）|锤头鹳|离心舞者|冰钻布鲁斯|森巨人|黑化加尔|圣羽翼王|徘徊爪爪|利灯鱼|卡瓦重（火山附近的样子）|画间沉铁兽|迪莫|寒音蛇|食尘短绒|蹦床松鼠|小皮球|椰浆布丁|龙息帕尔|闪电鳗鱼|巨噬针鼹|翼龙|幻影灵菇|影狸|稻草守护者|龙鱼|火神|帕帕斯卡|酷拉|深渊蛙|白金独角兽|九幽菇|岚鸟（春天的样子）|獠牙猪|加尔|针叶巡林|岚鸟（夏天的样子）|星光狮（星光能量的样子）|黑猫巫师|菊花梨|布克棱岩|高脚鹬|里拉鳐|海枝枝（翠绿纶布）|棋绮后（白子）|兽花蕾|壳栗丝鼠|嗜波螺（被污染的样子）|月牙雪熊|邪眼巨魔|圣剑-X|伊贝粉粉|海枝枝（碧蓝珊瑚）|怖哭菇|卡洛儿|荆棘电环|伊兰亚龙|抹茶布丁|绒仙子|落陨星兔|石冠王蜥（本来的样子）|克莱因龙|裘卡|窃光蚊|棋绮后（黑子）|琉璃水母|巨鼓象|燃薪虫|饮雪狂兽|珀尔鼬|乌拉塔（极昼的样子）|皇家狮鹫（高山地的样子）|流浪鼠|爆焰喷喷|春花兔|化蝶（幽冥眼的样子）|卡拉波斯|奇丽花|千棘盔（本来的样子）|公平鸽|圆号鱼|雷神之子|陨星虫|炽心勇狮|半朽蜜果灵|化蝶（奇丽花的样子）|雪巨人|夜枭|花衣蝶|蝎子王|波多西|流明坎德拉|白发路路|岚鸟（本来的样子）|铠甲虫|魔草巫灵|岚鸟（秋天的样子）`.split("|");
+  const s3Top120Names = new Set(S3_TOP_120_NAMES);
   const profilesById = new Map(STANDARD_PROFILES.map((profile) => [profile.id, profile]));
   const SPECIAL_LINES = {
     "兽花蕾": [{ profile: "fast", add: 100, note: "特性+100" }],
@@ -46,6 +48,7 @@
   };
 
   let state = loadState();
+  let mainFilter = state.mainFilter === "s3" ? "s3" : "all";
   let poolFilter = "all";
   let toastTimer;
 
@@ -120,7 +123,8 @@
   function renderMain() {
     const query = els.mainSearch.value.trim().toLowerCase();
     const selected = selectedMonsters();
-    const entries = selected
+    const scoped = selected.filter((monster) => mainFilter === "all" || s3Top120Names.has(monster.displayName));
+    const entries = scoped
       .filter((monster) => !query || monster.displayName.toLowerCase().includes(query))
       .flatMap(lineEntries);
     const groups = new Map();
@@ -142,7 +146,9 @@
     );
 
     const selectedTotal = selected.length;
-    els.summaryText.textContent = `已选 ${selectedTotal} 只精灵 · 当前 ${sortedGroups.length} 档速度线。`;
+    els.summaryText.textContent = mainFilter === "s3"
+      ? `S3使用率前120筛选 · 精灵池中匹配 ${scoped.length} 只 · 当前 ${sortedGroups.length} 档速度线。`
+      : `已选 ${selectedTotal} 只精灵 · 当前 ${sortedGroups.length} 档速度线。`;
     updateCounts(selectedTotal);
 
     if (!sortedGroups.length) {
@@ -230,6 +236,10 @@
     document.querySelectorAll("[data-pool-filter]").forEach((button) => button.classList.toggle("active", button.dataset.poolFilter === poolFilter));
   }
 
+  function syncMainFilterButtons() {
+    document.querySelectorAll("[data-main-filter]").forEach((button) => button.classList.toggle("active", button.dataset.mainFilter === mainFilter));
+  }
+
   function openPool() {
     if (matchMedia("(max-width: 980px)").matches) {
       document.body.classList.add("pool-open");
@@ -248,7 +258,7 @@
   }
 
   function restoreDefault() {
-    state = defaultState();
+    state = { ...defaultState(), mainFilter };
     saveState();
     renderMain();
     renderPool();
@@ -263,6 +273,13 @@
   }
 
   els.mainSearch.addEventListener("input", renderMain);
+  document.querySelectorAll("[data-main-filter]").forEach((button) => button.addEventListener("click", () => {
+    mainFilter = button.dataset.mainFilter;
+    state.mainFilter = mainFilter;
+    saveState();
+    syncMainFilterButtons();
+    renderMain();
+  }));
   els.poolSearch.addEventListener("input", renderPool);
   els.poolLaunch.addEventListener("click", openPool);
   els.floatingPool.addEventListener("click", openPool);
@@ -289,6 +306,7 @@
 
   els.restoreDefault.textContent = `恢复默认（${finalMonsters.length}）`;
 
+  syncMainFilterButtons();
   renderMain();
   renderPool();
 })();
