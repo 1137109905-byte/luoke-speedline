@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f2ede2" />
+    <title>DEX · 速度线</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%23d28515%22/><text x=%2232%22 y=%2242%22 text-anchor=%22middle%22 font-size=%2234%22 fill=%22white%22>D</text></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <main class="main-column">
+        <header class="masthead">
+          <div class="brand-row">
+            <a class="brand" href="#top" aria-label="返回顶部">DEX · 图鉴</a>
+            <button class="pool-launch" id="poolLaunch" type="button">
+              精灵池 <span id="poolLaunchCount">0</span>
+            </button>
+          </div>
+
+          <label class="hero-search" for="mainSearch">
+            <span class="prompt">&gt;</span>
+            <input id="mainSearch" type="search" placeholder="搜索精灵查看速度线" autocomplete="off" />
+            <span class="cursor" aria-hidden="true"></span>
+          </label>
+
+        </header>
+
+        <section class="intro" id="top">
+          <p id="summaryText">正在载入精灵池…</p>
+          <p>每只精灵按个体0中性、个体10中性、个体10加速性格分别生成速度档。</p>
+          <p class="credit">橙色备注代表特性或道具加速；精灵池负责加入和移除精灵。</p>
+        </section>
+
+        <section class="speed-list" id="speedList" aria-live="polite"></section>
+      </main>
+
+      <aside class="pool-panel" id="poolPanel" aria-label="精灵池">
+        <div class="pool-head">
+          <div>
+            <h2>精灵池</h2>
+            <span class="selected-count">已选 <b id="selectedCount">0</b></span>
+          </div>
+          <button class="icon-button" id="poolClose" type="button" aria-label="关闭精灵池">×</button>
+        </div>
+
+        <label class="pool-search" for="poolSearch">
+          <span aria-hidden="true">⌕</span>
+          <input id="poolSearch" type="search" placeholder="搜索精灵名称" autocomplete="off" />
+        </label>
+
+        <div class="pool-tools">
+          <button class="filter-chip active" data-pool-filter="all" type="button">全部精灵</button>
+          <button class="filter-chip" data-pool-filter="selected" type="button">只看已选</button>
+          <span id="resultCount"></span>
+        </div>
+
+        <div class="pool-list" id="poolList"></div>
+
+        <div class="pool-actions">
+          <button class="secondary-button" id="clearPool" type="button">清空</button>
+          <button class="secondary-button" id="restoreDefault" type="button">恢复默认</button>
+          <button class="primary-button" id="poolDone" type="button">完成（0）</button>
+        </div>
+      </aside>
+    </div>
+
+    <button class="floating-pool" id="floatingPool" type="button">精灵池 <span id="floatingCount">0</span></button>
+    <div class="backdrop" id="backdrop"></div>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
