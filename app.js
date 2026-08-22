@@ -44,12 +44,15 @@
     selectedCount: document.querySelector("#selectedCount"), poolDone: document.querySelector("#poolDone"),
     poolLaunchCount: document.querySelector("#poolLaunchCount"), floatingCount: document.querySelector("#floatingCount"),
     restoreDefault: document.querySelector("#restoreDefault"), clearPool: document.querySelector("#clearPool"),
-    resultCount: document.querySelector("#resultCount"), toast: document.querySelector("#toast")
+    resultCount: document.querySelector("#resultCount"), speedTooltip: document.querySelector("#speedTooltip"),
+    toast: document.querySelector("#toast")
   };
 
   let state = loadState();
   let mainFilter = state.mainFilter === "s3" ? "s3" : "all";
   let poolFilter = "all";
+  let speedTooltipTimer;
+  let speedTooltipTarget;
   let toastTimer;
 
   function defaultState() {
@@ -120,7 +123,54 @@
     });
   }
 
+  function positionSpeedTooltip(target) {
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = els.speedTooltip.getBoundingClientRect();
+    const gap = 10;
+    const left = Math.min(
+      window.innerWidth - tooltipRect.width - 8,
+      Math.max(8, targetRect.left + targetRect.width / 2 - tooltipRect.width / 2)
+    );
+    const above = targetRect.top - tooltipRect.height - gap;
+    const top = above >= 8 ? above : targetRect.bottom + gap;
+    els.speedTooltip.style.left = `${left}px`;
+    els.speedTooltip.style.top = `${top}px`;
+  }
+
+  function scheduleSpeedTooltip(target) {
+    hideSpeedTooltip();
+    speedTooltipTarget = target;
+    speedTooltipTimer = setTimeout(() => {
+      if (speedTooltipTarget !== target || !target.isConnected) return;
+      const monster = byId.get(Number(target.dataset.speedId));
+      if (!monster) return;
+      const rows = STANDARD_PROFILES.map((profile) => {
+        const label = profile.id === "fast" ? "个体10 · 加速性格" : profile.id === "full" ? "个体10 · 中性" : "个体0 · 中性";
+        return `<div class="speed-tooltip-row"><span>${label}</span><strong>${calculateSpeed(monster, profile)}</strong></div>`;
+      }).join("");
+      els.speedTooltip.innerHTML = `<div class="speed-tooltip-title">${monster.displayName} · 三种速度</div>${rows}`;
+      els.speedTooltip.classList.add("show");
+      els.speedTooltip.setAttribute("aria-hidden", "false");
+      positionSpeedTooltip(target);
+    }, 1000);
+  }
+
+  function hideSpeedTooltip() {
+    clearTimeout(speedTooltipTimer);
+    speedTooltipTarget = null;
+    els.speedTooltip.classList.remove("show");
+    els.speedTooltip.setAttribute("aria-hidden", "true");
+  }
+
+  function attachSpeedTooltips(root) {
+    root.querySelectorAll("[data-speed-id]").forEach((pill) => {
+      pill.addEventListener("mouseenter", () => scheduleSpeedTooltip(pill));
+      pill.addEventListener("mouseleave", hideSpeedTooltip);
+    });
+  }
+
   function renderMain() {
+    hideSpeedTooltip();
     const query = els.mainSearch.value.trim().toLowerCase();
     const selected = selectedMonsters();
     const scoped = selected.filter((monster) => mainFilter === "all" || s3Top120Names.has(monster.displayName));
@@ -159,7 +209,7 @@
 
     els.speedList.innerHTML = sortedGroups.map((group) => {
       const pills = group.entries.sort((a, b) => a.monster.dex_number - b.monster.dex_number).map(({ monster, note }) => `
-        <div class="pet-pill">
+        <div class="pet-pill" data-speed-id="${monster.id}">
           <button class="pet-edit" type="button" data-edit-id="${monster.id}" title="在精灵池中查看 ${monster.displayName}">
             ${avatar(monster)}<span class="pet-name">${monster.displayName}</span>${note ? `<span class="speed-note">${note}</span>` : ""}
           </button>
@@ -169,6 +219,7 @@
       return `<article class="speed-group"><div class="speed-number">${group.value}</div><div class="pet-wrap">${pills}</div><div class="group-meta">${meta}</div></article>`;
     }).join("");
     attachImageFallbacks(els.speedList);
+    attachSpeedTooltips(els.speedList);
     els.speedList.querySelectorAll("[data-remove-id]").forEach((button) => button.addEventListener("click", (event) => {
       event.stopPropagation();
       toggleMonster(Number(button.dataset.removeId));
@@ -241,6 +292,7 @@
   }
 
   function openPool() {
+    hideSpeedTooltip();
     if (matchMedia("(max-width: 980px)").matches) {
       document.body.classList.add("pool-open");
     } else {
@@ -300,6 +352,8 @@
     renderPool();
   }));
   document.addEventListener("keydown", (event) => { if (event.key === "Escape") closePool(); });
+  document.addEventListener("scroll", hideSpeedTooltip, true);
+  window.addEventListener("resize", hideSpeedTooltip);
   matchMedia("(max-width: 980px)").addEventListener("change", () => {
     document.body.classList.remove("pool-open", "pool-hidden");
   });
